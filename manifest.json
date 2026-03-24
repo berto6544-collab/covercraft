@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "CoverCraft – AI Cover Letters",
+  "version": "1.1.0",
+  "description": "Instantly generate tailored AI cover letters from Seek, Indeed, Jora, Glassdoor, and LinkedIn job listings.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.seek.com.au/*",
+    "https://au.indeed.com/*",
+    "https://www.indeed.com/*",
+    "https://au.jora.com/*",
+    "https://www.jora.com/*",
+    "https://www.glassdoor.com/*",
+    "https://www.glassdoor.com.au/*",
+    "https://www.linkedin.com/*",
+    "https://api.anthropic.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.seek.com.au/*",
+        "https://au.indeed.com/*",
+        "https://www.indeed.com/*",
+        "https://au.jora.com/*",
+        "https://www.jora.com/*",
+        "https://www.glassdoor.com/*",
+        "https://www.glassdoor.com.au/*",
+        "https://www.linkedin.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CoverCraft</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f0e;
+      --surface: #151918;
+      --surface2: #1c2120;
+      --border: #2a3330;
+      --accent: #00e5a0;
+      --accent-dim: #00b87d;
+      --accent-glow: rgba(0, 229, 160, 0.15);
+      --text: #e8f0ed;
+      --text-muted: #7a9490;
+      --text-dim: #4a6460;
+      --danger: #ff5c6a;
+      --warn: #ffb340;
+    }
+
+    body {
+      width: 420px;
+      min-height: 500px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* HEADER */
+    .header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface);
+      position: relative; overflow: hidden;
+    }
+    .header::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 0% 50%, var(--accent-glow), transparent 70%);
+      pointer-events: none;
+    }
+    .logo {
+      width: 32px; height: 32px; background: var(--accent); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: #000; flex-shrink: 0;
+    }
+    .header-text h1 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; letter-spacing: -0.3px; color: var(--text); }
+    .header-text p { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .settings-btn {
+      margin-left: auto; background: none; border: 1px solid var(--border); border-radius: 6px;
+      width: 30px; height: 30px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); transition: all 0.15s; position: relative; z-index: 1;
+    }
+    .settings-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* TABS */
+    .tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); padding: 0 20px; }
+    .tab {
+      padding: 10px 0; margin-right: 20px; font-size: 12px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s;
+      letter-spacing: 0.3px; text-transform: uppercase;
+    }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    .panel { display: none; padding: 16px 20px; }
+    .panel.active { display: block; }
+
+    .section-label { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+
+    /* JOB CARD */
+    .job-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      margin-bottom: 14px; position: relative; overflow: hidden; transition: border-color 0.2s;
+    }
+    .job-card.detected.expandable { cursor: pointer; }
+    .job-card.detected.expandable:hover { border-color: var(--accent-dim); }
+    .job-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: var(--text-dim); border-radius: 10px 0 0 10px;
+    }
+    .job-card.detected::before { background: var(--accent); }
+    .job-card-summary { padding: 12px 14px; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .job-card-summary-left { flex: 1; min-width: 0; }
+    .job-card-actions { display: flex; gap: 5px; flex-shrink: 0; margin-top: 1px; }
+    .job-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .job-meta { font-size: 12px; color: var(--text-muted); }
+    .job-status { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; margin-top: 6px; }
+    .job-status.ok   { background: rgba(0,229,160,0.1); color: var(--accent); }
+    .job-status.warn { background: rgba(255,179,64,0.1); color: var(--warn); }
+    .status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .refresh-btn, .expand-btn {
+      background: none; border: 1px solid var(--border); border-radius: 5px;
+      width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-muted); transition: all 0.15s; flex-shrink: 0;
+    }
+    .refresh-btn:hover, .expand-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .expand-btn #expandIcon { transition: transform 0.25s ease; }
+    .job-card.expanded .expand-btn #expandIcon { transform: rotate(180deg); }
+    .job-details-panel { max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1); }
+    .job-card.expanded .job-details-panel { max-height: 500px; }
+    .job-details-divider { height: 1px; background: var(--border); margin: 0 14px; }
+    .job-detail-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px 0; }
+    .job-detail-icon { font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+    .job-detail-label { font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 2px; }
+    .job-detail-value { font-size: 13px; color: var(--text); }
+    .job-detail-link { font-size: 12px; color: var(--accent); text-decoration: none; font-family: 'DM Mono', monospace; }
+    .job-detail-link:hover { text-decoration: underline; }
+    .job-desc-wrap { padding: 10px 14px 14px; }
+    .job-desc-preview { font-size: 12px; line-height: 1.6; color: var(--text-muted); max-height: 120px; overflow-y: auto; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 8px 10px; white-space: pre-wrap; }
+    .job-desc-preview::-webkit-scrollbar { width: 3px; }
+    .job-desc-preview::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* RESUME INPUT TOGGLE*/
+    .resume-toggle {
+      display: flex; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 3px; margin-bottom: 10px; gap: 2px;
+    }
+    .resume-toggle-btn {
+      flex: 1; padding: 6px 0; font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
+      text-align: center; border-radius: 6px; cursor: pointer; border: none;
+      background: none; color: var(--text-muted); transition: all 0.15s;
+    }
+    .resume-toggle-btn.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+    .resume-toggle-btn:hover:not(.active) { color: var(--text); }
+
+    /* UPLOAD MODE*/
+    /*
+      
+      Wrap the <input type="file"> in a <label> using the `for` attribute.
+      The label is the visible clickable zone. The browser treats a click on
+      a <label for="..."> as a direct user gesture on the input — this keeps
+      the popup alive in Firefox (and Chrome). No JS .click() calls needed.
+    */
+    .upload-label {
+      display: block;
+      border: 1.5px dashed var(--border);
+      border-radius: 10px; padding: 20px 16px; text-align: center;
+      cursor: pointer; transition: all 0.2s; background: var(--surface); margin-bottom: 10px;
+    }
+    .upload-label:hover, .upload-label.drag-over { border-color: var(--accent); background: var(--accent-glow); }
+    /* The actual input: hidden but still in DOM for the label association */
+    #resumeFile { display: none; }
+
+    .upload-icon { font-size: 24px; margin-bottom: 6px; }
+    .upload-text { font-size: 13px; color: var(--text-muted); }
+    .upload-text strong { color: var(--accent); }
+    .upload-hint { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+    /* PASTE MODE */
+    .paste-area {
+      width: 100%; min-height: 110px;
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 10px 12px; font-family: 'DM Mono', monospace; font-size: 11px; line-height: 1.6;
+      color: var(--text); resize: vertical; outline: none; transition: border-color 0.15s; margin-bottom: 8px;
+    }
+    .paste-area:focus { border-color: var(--accent); }
+    .paste-area::placeholder { color: var(--text-dim); }
+    .paste-confirm-btn {
+      width: 100%; padding: 9px; background: none;
+      border: 1px solid var(--accent-dim); border-radius: 8px; color: var(--accent);
+      font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all 0.15s; margin-bottom: 10px;
+    }
+    .paste-confirm-btn:hover { background: var(--accent-glow); }
+    .paste-confirm-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* RESUME LOADED (shared)*/
+    .resume-loaded {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 14px; margin-bottom: 10px;
+    }
+    .resume-loaded.has-file { border-color: var(--accent-dim); }
+    .resume-icon { width: 32px; height: 32px; background: rgba(0,229,160,0.1); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .resume-name { font-size: 13px; font-weight: 500; color: var(--text); }
+    .resume-size { font-size: 11px; color: var(--text-muted); }
+    .resume-clear { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--text-dim); font-size: 16px; padding: 2px; transition: color 0.15s; }
+    .resume-clear:hover { color: var(--danger); }
+
+    /* TONE */
+    .tone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 14px; }
+    .tone-opt { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); cursor: pointer; transition: all 0.15s; text-align: left; }
+    .tone-opt:hover { border-color: var(--text-muted); }
+    .tone-opt.selected { border-color: var(--accent); background: var(--accent-glow); }
+    .tone-opt-label { font-size: 12px; font-weight: 600; color: var(--text); display: block; }
+    .tone-opt-desc { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+    /* GENERATE */
+    .generate-btn {
+      width: 100%; padding: 13px; background: var(--accent); color: #000; border: none; border-radius: 10px;
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.3px;
+      cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+      position: relative; overflow: hidden;
+    }
+    .generate-btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent); opacity: 0; transition: opacity 0.2s; }
+    .generate-btn:hover::before { opacity: 1; }
+    .generate-btn:hover { background: #00f5b0; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,229,160,0.3); }
+    .generate-btn:disabled { background: var(--surface2); color: var(--text-dim); cursor: not-allowed; transform: none; box-shadow: none; }
+    .generate-btn:disabled::before { display: none; }
+
+    /* LOADING */
+    .loading-state { text-align: center; padding: 30px 20px; }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-label { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent); }
+    .loading-sub { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+    /* OUTPUT */
+    .output-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .output-actions { display: flex; gap: 6px; }
+    .icon-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 5px 10px; font-size: 11px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 4px; }
+    .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .icon-btn.copied { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+    .cover-letter-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; max-height: 340px; overflow-y: auto; font-family: 'DM Sans', sans-serif; font-size: 13px; line-height: 1.7; color: var(--text); white-space: pre-wrap; word-break: break-word; }
+    .cover-letter-box::-webkit-scrollbar { width: 4px; }
+    .cover-letter-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .regen-btn { width: 100%; margin-top: 10px; padding: 10px; background: none; border: 1px solid var(--border); border-radius: 10px; color: var(--text-muted); font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .regen-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ERROR */
+    .error-box { background: rgba(255,92,106,0.08); border: 1px solid rgba(255,92,106,0.3); border-radius: 10px; padding: 12px 14px; font-size: 12px; color: var(--danger); margin-bottom: 12px; }
+
+    /* SETTINGS */
+    .field-label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; display: block; }
+    .field-input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text); outline: none; transition: border-color 0.15s; margin-bottom: 12px; }
+    .field-input:focus { border-color: var(--accent); }
+    .field-input::placeholder { color: var(--text-dim); }
+    .save-btn { width: 100%; padding: 10px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+    .save-btn:hover { background: #00f5b0; }
+    .api-hint { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
+    .api-hint a { color: var(--accent); text-decoration: none; }
+    .api-hint a:hover { text-decoration: underline; }
+    .save-notice { font-size: 11px; color: var(--accent); text-align: center; margin-top: 8px; height: 16px; }
+    .word-count { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); text-align: right; margin-top: 6px; }
+    .divider { height: 1px; background: var(--border); margin: 14px 0; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">CC</div>
+    <div class="header-text">
+      <h1>CoverCraft</h1>
+      <p>AI Cover Letters · Seek · Indeed · Jora · More</p>
+    </div>
+    <button class="settings-btn" id="settingsToggle" title="Settings">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="generate">Generate</div>
+    <div class="tab" data-tab="settings">Settings</div>
+  </div>
+
+  <!-- GENERATE PANEL -->
+  <div class="panel active" id="tab-generate">
+
+    <div class="section-label">Job Detected</div>
+    <div class="job-card empty" id="jobCard">
+      <div class="job-card-summary">
+        <div class="job-card-summary-left">
+          <div class="job-title" id="jobTitle">No job detected</div>
+          <div class="job-meta" id="jobMeta">Open a job listing on Seek, Indeed, Jora, Glassdoor, or LinkedIn</div>
+          <div class="job-status warn" id="jobStatus">
+            <span class="status-dot"></span><span>Not Detected</span>
+          </div>
+        </div>
+        <div class="job-card-actions">
+          <button class="refresh-btn" id="refreshJob" title="Re-scan page">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+          </button>
+          <button class="expand-btn" id="expandJob" title="Show job details" style="display:none">
+            <svg id="expandIcon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="job-details-panel" id="jobDetailsPanel">
+        <div class="job-details-divider"></div>
+        <div class="job-detail-row" id="detailCompany" style="display:none">
+          <span class="job-detail-icon">🏢</span>
+          <div><div class="job-detail-label">Company</div><div class="job-detail-value" id="detailCompanyVal">—</div></div>
+        </div>
+        <div class="job-detail-row" id="detailLocation" style="display:none">
+          <span class="job-detail-icon">📍</span>
+          <div><div class="job-detail-label">Location</div><div class="job-detail-value" id="detailLocationVal">—</div></div>
+        </div>
+        <div class="job-detail-row" id="detailSite" style="display:none">
+          <span class="job-detail-icon">🌐</span>
+          <div><div class="job-detail-label">Source</div><div class="job-detail-value" id="detailSiteVal">—</div></div>
+        </div>
+        <div class="job-detail-row" id="detailUrl" style="display:none">
+          <span class="job-detail-icon">🔗</span>
+          <div><div class="job-detail-label">URL</div><a class="job-detail-link" id="detailUrlVal" href="#" target="_blank">Open listing</a></div>
+        </div>
+        <div class="job-desc-wrap" id="detailDescWrap" style="display:none">
+          <div class="job-detail-label" style="margin-bottom:6px">Job Description Preview</div>
+          <div class="job-desc-preview" id="detailDescVal"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resume Input -->
+    <div class="section-label">Your Resume</div>
+
+    <div class="resume-toggle">
+      <button class="resume-toggle-btn active" id="toggleUpload">⬆ Upload File</button>
+      <button class="resume-toggle-btn" id="togglePaste">✎ Paste Text</button>
+    </div>
+
+    <!-- Upload mode -->
+    <div id="uploadMode">
+      <!--
+        <label for="resumeFile"> is the clickable zone.
+        A label click is treated as a direct user gesture by the browser,
+        which keeps the extension popup alive in both Chrome AND Firefox.
+        The hidden #resumeFile input just needs to exist in the DOM.
+      -->
+      <label class="upload-label" id="uploadZone" for="resumeFile">
+        <div class="upload-icon">📄</div>
+        <div class="upload-text"><strong>Click to upload</strong> or drag & drop</div>
+        <div class="upload-hint">PDF, TXT, DOC — Max 5MB</div>
+      </label>
+      <input type="file" id="resumeFile" accept=".pdf,.txt,.doc,.docx" style="display:none" />
+
+      <div class="resume-loaded" id="resumeLoaded" style="display:none">
+        <div class="resume-icon">📄</div>
+        <div>
+          <div class="resume-name" id="resumeFileName">resume.pdf</div>
+          <div class="resume-size" id="resumeFileSize">—</div>
+        </div>
+        <button class="resume-clear" id="resumeClear" title="Remove resume">✕</button>
+      </div>
+    </div>
+
+    <!-- Paste mode -->
+    <div id="pasteMode" style="display:none">
+      <textarea
+        class="paste-area"
+        id="pasteArea"
+        placeholder="Paste your resume text here — work history, skills, education…"
+        spellcheck="false"
+      ></textarea>
+      <button class="paste-confirm-btn" id="pasteConfirm" disabled>Use This Resume Text</button>
+      <div class="resume-loaded" id="pasteLoaded" style="display:none">
+        <div class="resume-icon">✎</div>
+        <div>
+          <div class="resume-name">Resume text saved</div>
+          <div class="resume-size" id="pasteWordCount">—</div>
+        </div>
+        <button class="resume-clear" id="pasteClear" title="Clear text">✕</button>
+      </div>
+    </div>
+
+    <!-- Tone -->
+    <div class="section-label" style="margin-top:4px">Tone</div>
+    <div class="tone-grid">
+      <div class="tone-opt selected" data-tone="professional">
+        <span class="tone-opt-label">Professional</span>
+        <span class="tone-opt-desc">Polished & formal</span>
+      </div>
+      <div class="tone-opt" data-tone="enthusiastic">
+        <span class="tone-opt-label">Enthusiastic</span>
+        <span class="tone-opt-desc">Warm & energetic</span>
+      </div>
+      <div class="tone-opt" data-tone="concise">
+        <span class="tone-opt-label">Concise</span>
+        <span class="tone-opt-desc">Short & punchy</span>
+      </div>
+      <div class="tone-opt" data-tone="storytelling">
+        <span class="tone-opt-label">Storytelling</span>
+        <span class="tone-opt-desc">Narrative-driven</span>
+      </div>
+    </div>
+
+    <div class="error-box" id="errorBox" style="display:none"></div>
+
+    <div id="generateSection">
+      <button class="generate-btn" id="generateBtn" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+        Generate Cover Letter
+      </button>
+    </div>
+
+    <div class="loading-state" id="loadingState" style="display:none">
+      <div class="spinner"></div>
+      <div class="loading-label">Crafting your letter…</div>
+      <div class="loading-sub" id="loadingStep">Reading job description</div>
+    </div>
+
+    <div id="outputSection" style="display:none">
+      <div class="output-header">
+        <div class="section-label" style="margin-bottom:0">Cover Letter</div>
+        <div class="output-actions">
+          <button class="icon-btn" id="copyBtn">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            Copy
+          </button>
+        </div>
+      </div>
+      <div class="cover-letter-box" id="coverLetterOutput"></div>
+      <div class="word-count" id="wordCount"></div>
+      <button class="regen-btn" id="regenBtn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+        Regenerate
+      </button>
+    </div>
+
+  </div>
+
+  <!-- SETTINGS PANEL -->
+  <div class="panel" id="tab-settings">
+    <div class="section-label">Anthropic API Key</div>
+    <label class="field-label">API Key</label>
+    <input type="password" class="field-input" id="apiKeyInput" placeholder="sk-ant-api03-..." />
+    <div class="api-hint">
+      Get your key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
+      Stored locally — never sent anywhere except Anthropic.
+    </div>
+    <div class="divider"></div>
+    <div class="section-label">Your Details (optional)</div>
+    <label class="field-label">Your Name</label>
+    <input type="text" class="field-input" id="userNameInput" placeholder="Jane Smith" />
+    <label class="field-label">Your Email</label>
+    <input type="text" class="field-input" id="userEmailInput" placeholder="jane@email.com" />
+    <button class="save-btn" id="saveSettings">Save Settings</button>
+    <div class="save-notice" id="saveNotice"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
